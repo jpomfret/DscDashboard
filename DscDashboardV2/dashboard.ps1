@@ -24,6 +24,23 @@ $legendOptions =  @{
         $DscConnectionString = 'DSN=DscDashboard'
     }
 
+    function Get-DscPullConnection {
+        [CmdletBinding()]
+        param ()
+
+        if (-not $Cache:SMO) { #-or -not $Cache:SMO.ConnectionContext.IsOpen) {
+            try {
+                $Cache:SMO = New-DSCPullServerAdminConnection -SQLServer SERVER -Database DSC
+                #$Cache:SMO.ConnectionContext.Connect()
+            } catch {
+                Stop-PSFFunction -Message "Could not connect to pull server" -ErrorRecord $_ -EnableException $true
+            }
+        }
+
+        $Cache:SMO
+    }
+
+
     try {
         Get-ODBCData -ConnectionString $DscConnectionString -query "Select TOP 1 * from Devices;" | Out-Null
     }
@@ -78,13 +95,13 @@ Get-ChildItem -Path $PagesPath -Exclude "home.ps1","footer.ps1" | ForEach-Object
 }
 
 # The modules needs to be loaded in each process
-$Initialization = New-UDEndpointInitialization -Module 'DscDashboard'
+$Initialization = New-UDEndpointInitialization -Module 'DSCPullServerAdmin' -Function 'Get-DscPullConnection'
 
 # Initialize the Dashboard
 $Theme = Get-UDTheme "Default"
 
 Start-UDDashboard -Endpoint $RefreshAllNodes -Dashboard (
 
-    New-UDDashboard -Theme $Theme -Title "DSC Dashboard" -Pages $Pages -EndpointInitialization $Initialization -Footer $Footer -NavbarLinks $NavBarLinks # -CyclePagesInterval 150 -CyclePages
+    New-UDDashboard -Theme $Theme -Title "DSC Dashboard V2" -Pages $Pages -EndpointInitialization $Initialization -Footer $Footer -NavbarLinks $NavBarLinks # -CyclePagesInterval 150 -CyclePages
 
 ) -AutoReload -Wait #-Port 4242 # -Wait is needed for hosting

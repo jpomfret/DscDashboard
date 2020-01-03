@@ -9,7 +9,32 @@ New-UDPage -Name "Home" -Icon home -Content {
             New-UDLayout -Columns 3 -Content {
 
                 #region Node Compliancy
+
+                #New-UDGrid -Title 'test' -Headers @("Node") -Properties @("nodename") -Endpoint {
+                #    Get-DSCPullServerAdminRegistration | Out-UDGridData #, agentid | Out-UDGridData
+                #}
+
+                #New-UDCard -Title 'test' -Endpoint {
+                #    #$null = New-DSCPullServerAdminConnection -SQLServer SERVER -Database DSC
+                #
+                #    #$serverName = Get-DSCPullServerAdminConnection | select -first 1 -expand sqlserver
+                #    "testing the server $serverName"
+                #}
+
+                New-UDTable -Title "Nodes" -Headers @("NodeName") -Endpoint {
+                    #$null = New-DSCPullServerAdminConnection -SQLServer SERVER -Database DSC
+                    Get-DSCPullServerAdminRegistration -Connection (Get-DscPullConnection) | Select NodeName | Out-UDTableData -Property @("NodeName")
+                }
+
+                <#
+                New-UDTable -Title "Connection" -Headers @("Type", "SQLServer", "Credential", "Database") -Endpoint {
+                    Get-DSCPullServerAdminConnection | Select-Object Type, SQLServer, Credential, Database | Out-UDTableData -Property @("Type", "SQLServer", "Credential", "Database")
+                }
+
+
                     New-UDChart -Title "Node Compliancy" -Type Doughnut -RefreshInterval 60 -Endpoint {
+
+
 
                         #$result = $Cache:AllNodes | Select-Object -ExpandProperty Compliancy | Group-Object -Property text | Sort-Object name
                         $result = ($Cache:AllNodes | Select-Object -ExpandProperty Compliancy).text | Group-Object | Sort-Object name
@@ -36,10 +61,10 @@ New-UDPage -Name "Home" -Icon home -Content {
                                 }
                             }
                         }
-
                         $result | Out-UDChartData -DataProperty "Count" -LabelProperty "Name" -DatasetLabel "Node Compliancy" -BackgroundColor $colors
 
                     } -Options $legendOptions #-Links $nodesLink
+                    #>
 
                 #endregion
 
